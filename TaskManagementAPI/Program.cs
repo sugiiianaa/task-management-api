@@ -1,4 +1,6 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using TaskManagement.Infrastructure.Persistence;
 using TaskManagementAPI.Endpoints;
 using TaskManagementAPI.Extensions;
 
@@ -38,6 +40,13 @@ if (app.Environment.IsDevelopment())
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "TaskManagement API v1");  // Point to Swagger JSON
         c.RoutePrefix = string.Empty;  // Set Swagger UI to be at the root (http://localhost:5000 or https://localhost:5001)
     });
+}
+
+// Apply any pending migrations automatically
+using(var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    dbContext.Database.Migrate();
 }
 
 // Endpoints

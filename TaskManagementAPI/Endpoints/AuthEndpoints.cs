@@ -9,6 +9,8 @@ namespace TaskManagementAPI.Endpoints
         {
             app.MapPost("/api/auth/register", async (IAuthService authService, RegisterRequest request) =>
             {
+                // TODO : fix issue with api return 400 even the process is success
+                // also handle already registered user error 
                 var response = await authService.RegisterAsync(request);
 
                 if (response.Message == "User registered successfully")
