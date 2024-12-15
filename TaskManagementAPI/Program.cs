@@ -1,7 +1,6 @@
-using TaskManagement.Infrastructure.Persistence;
-using Microsoft.EntityFrameworkCore;
-using TaskManagementAPI.Extensions;
 using Microsoft.OpenApi.Models;
+using TaskManagementAPI.Endpoints;
+using TaskManagementAPI.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,7 +8,6 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddApplicationServices(); // Register application services (e.g., use cases)
 builder.Services.AddInfrastructureServices(builder.Configuration); // Register infrastructure services
-
 
 // Swagger config
 builder.Services.AddEndpointsApiExplorer();
@@ -23,7 +21,6 @@ builder.Services.AddSwaggerGen(options =>
         Description = "A simple API for Task Management"
     });
 });
-
 
 // Logging config
 builder.Logging.ClearProviders();
@@ -42,6 +39,9 @@ if (app.Environment.IsDevelopment())
         c.RoutePrefix = string.Empty;  // Set Swagger UI to be at the root (http://localhost:5000 or https://localhost:5001)
     });
 }
+
+// Endpoints
+app.MapAuthEndpoints();
 
 app.UseHttpsRedirection();
 app.UseAuthorization();
