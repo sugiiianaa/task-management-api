@@ -21,8 +21,6 @@ namespace TaskManagementAPI.Extensions
             // Register infrastructure services like repositories and DbContext
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IUserRepository, UserRepository>();
-            services.AddDbContext<AppDbContext>(options =>
-                options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
         }
 
     }

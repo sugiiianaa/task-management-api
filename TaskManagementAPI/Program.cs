@@ -1,58 +1,129 @@
+using AspNetCoreRateLimit;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.OpenApi.Models;
 using TaskManagement.Infrastructure.Persistence;
 using TaskManagementAPI.Endpoints;
 using TaskManagementAPI.Extensions;
+using TaskManagementAPI.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
-/// Add services to the container.
-builder.Services.AddControllers();
-builder.Services.AddApplicationServices(); // Register application services (e.g., use cases)
-builder.Services.AddInfrastructureServices(builder.Configuration); // Register infrastructure services
-
-// Swagger config
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(options =>
-{
-    // Configure Swagger generation settings here (optional)
-    options.SwaggerDoc("v1", new OpenApiInfo
-    {
-        Title = "TaskManagement API",
-        Version = "v1",
-        Description = "A simple API for Task Management"
-    });
-});
-
-// Logging config
-builder.Logging.ClearProviders();
-builder.Logging.AddConsole();
-builder.Logging.SetMinimumLevel(LogLevel.Debug);
+// Service Configuration
+ConfigureServices(builder);
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();  // Enable Swagger middleware to generate the Swagger JSON
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "TaskManagement API v1");  // Point to Swagger JSON
-        c.RoutePrefix = string.Empty;  // Set Swagger UI to be at the root (http://localhost:5000 or https://localhost:5001)
-    });
-}
+// Middleware Configuration
+ConfigureMiddleware(app);
 
-// Apply any pending migrations automatically
-using(var scope = app.Services.CreateScope())
-{
-    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    dbContext.Database.Migrate();
-}
-
-// Endpoints
-app.MapAuthEndpoints();
-
-app.UseHttpsRedirection();
-app.UseAuthorization();
-app.MapControllers();
 app.Run();
+
+void ConfigureServices(WebApplicationBuilder builder)
+{
+    // Register DbContext
+    builder.Services.AddDbContext<AppDbContext>(options =>
+                options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+    // Register services
+    builder.Services.AddApplicationServices(); // Possibly removed later
+    builder.Services.AddInfrastructureServices(builder.Configuration);
+
+    // Swagger configuration
+    builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddSwaggerGen(options =>
+    {
+        options.SwaggerDoc("v1", new OpenApiInfo
+        {
+            Title = "TaskManagement API",
+            Version = "v1",
+            Description = "A simple API for Task Management"
+        });
+    });
+
+    // Logging configuration
+    builder.Logging.ClearProviders();
+    builder.Logging.AddConsole();
+    builder.Logging.SetMinimumLevel(LogLevel.Debug);
+
+    // Response Compression
+    builder.Services.AddResponseCompression(options =>
+    {
+        options.EnableForHttps = true;
+        options.MimeTypes = new[] { "text/plain", "application/json", "text/css", "application/javascript" };
+    });
+
+    // Rate Limiting
+    builder.Services.AddMemoryCache();
+    builder.Services.AddOptions();
+    builder.Services.Configure<IpRateLimitOptions>(builder.Configuration.GetSection("IpRateLimiting"));
+    builder.Services.AddInMemoryRateLimiting();
+    builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
+}
+
+void ConfigureMiddleware(WebApplication app)
+{
+    // Swagger setup
+    if (app.Environment.IsDevelopment())
+    {
+        app.UseSwagger();
+        app.UseSwaggerUI(c =>
+        {
+            c.SwaggerEndpoint("/swagger/v1/swagger.json", "TaskManagement API v1");
+            c.RoutePrefix = string.Empty;
+        });
+    }
+
+    // Apply database migration automatically in development
+    if (app.Environment.IsDevelopment())
+    {
+        using var scope = app.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        dbContext.Database.Migrate();
+    }
+
+    // Error handling
+    app.UseExceptionHandler(errorApp =>
+    {
+        errorApp.Run(async context =>
+        {
+            context.Response.ContentType = "application/json";
+            var exception = context.Features.Get<IExceptionHandlerFeature>()?.Error;
+
+            if (exception is BadHttpRequestException badRequestException)
+            {
+                context.Response.StatusCode = StatusCodes.Status400BadRequest;
+                var errorResponse = new
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = "Invalid request format.",
+                    Details = app.Environment.IsDevelopment() ? badRequestException.Message : null // Show details in Development only
+                };
+
+                await context.Response.WriteAsJsonAsync(errorResponse);
+            }
+            else
+            {
+                context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+                var errorResponse = new
+                {
+                    StatusCode = StatusCodes.Status500InternalServerError,
+                    Message = exception?.Message ?? "An unexpected error occurred.",
+                    Details = app.Environment.IsDevelopment() ? exception?.StackTrace : null // Show details in Development only
+                };
+
+                await context.Response.WriteAsJsonAsync(errorResponse);
+            }
+        });
+    });
+
+    //Middlewares
+    app.UseHttpsRedirection();
+    app.UseResponseCompression();
+    app.UseIpRateLimiting();
+    app.UseMiddleware<LoggingMiddleware>();
+
+    // Map Endpoints
+    app.MapAuthEndpoints();
+};

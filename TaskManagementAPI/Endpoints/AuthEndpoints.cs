@@ -1,4 +1,5 @@
-﻿using TaskManagement.Application.DTOs;
+﻿using System.ComponentModel.DataAnnotations;
+using TaskManagement.Application.DTOs;
 using TaskManagement.Application.Interfaces;
 
 namespace TaskManagementAPI.Endpoints
@@ -23,6 +24,18 @@ namespace TaskManagementAPI.Endpoints
 
             app.MapPost("/api/auth/login", async (IAuthService authService, LoginRequest request) =>
             {
+                // Validate model manually
+                // TODO : create global helper later
+                var validationResults = new List<ValidationResult>();
+                var validationContext = new ValidationContext(request);
+                bool isValid = Validator.TryValidateObject(request, validationContext, validationResults, true);
+
+                if (!isValid)
+                {
+                    var errors = validationResults.ToDictionary(vr => vr.MemberNames.First(), vr => vr.ErrorMessage);
+                    return Results.BadRequest(new { errors });
+                }
+
                 var response = await authService.LoginAsync(request);
 
                 if (response.Message == "Login successful")
