@@ -28,7 +28,7 @@ namespace TaskManagementAPI.Endpoints
                     return Results.BadRequest(new ApiResponse<string>
                     {
                         IsSuccess = false,
-                        Message = ResponseMessage.BadRequest
+                        Message = response.Message ?? "An error occured while process the request"
                     });
                 }
 

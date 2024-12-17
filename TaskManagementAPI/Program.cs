@@ -27,7 +27,7 @@ void ConfigureServices(WebApplicationBuilder builder)
                 options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
     // Register services
-    builder.Services.AddApplicationServices(); // Possibly removed later
+    builder.Services.AddApplicationServices();
     builder.Services.AddInfrastructureServices(builder.Configuration);
 
     // Swagger configuration

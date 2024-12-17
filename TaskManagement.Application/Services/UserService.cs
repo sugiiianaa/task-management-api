@@ -10,10 +10,14 @@ namespace TaskManagement.Application.Services
     public class UserService : IUserService
     {
         private readonly IUserRepository _userRepository;
+        private readonly IPasswordHasher _passwordHasher;
 
-        public UserService(IUserRepository userRepository)
+        public UserService(
+            IUserRepository userRepository, 
+            IPasswordHasher passwordHasher)
         {
             _userRepository = userRepository;
+            _passwordHasher = passwordHasher;
         }
 
         public async Task<LoginResponseDto> LoginUserAsync(LoginRequestDto requestDto)
@@ -29,10 +33,8 @@ namespace TaskManagement.Application.Services
                 };
             }
 
-            // TODO : implement hashing logic later
-            var passwordHash = requestDto.Password;
 
-            if (passwordHash != user.PasswordHash)
+            if (!_passwordHasher.VerifyPassword(user.PasswordHash, requestDto.Password))
             {
                 return new LoginResponseDto
                 {
@@ -53,11 +55,13 @@ namespace TaskManagement.Application.Services
 
         public async Task<RegisterResponseDto> RegisterUserAsync(RegisterRequestDto requestDto)
         {
+            var hashedPassword = _passwordHasher.HashPassword(requestDto.Password);
+            
             var userEntity = new User
             {
                 Email = requestDto.Email,
                 Name = requestDto.Name,
-                PasswordHash = requestDto.Password, //hash later
+                PasswordHash = hashedPassword,
                 Role = "User"
             };
 

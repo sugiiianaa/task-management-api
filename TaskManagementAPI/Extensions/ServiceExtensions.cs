@@ -11,6 +11,7 @@ namespace TaskManagementAPI.Extensions
         {
             // Register application services, e.g., use cases, services
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IPasswordHasher, PasswordHasher>();
         }
 
         public static void AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
