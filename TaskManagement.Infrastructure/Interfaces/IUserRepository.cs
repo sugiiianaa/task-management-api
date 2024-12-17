@@ -10,6 +10,6 @@ namespace TaskManagement.Infrastructure.Interfaces
     public interface IUserRepository
     {
         Task AddUserAsync(User user);
-        Task<User?> GetUserByUsernameAsync(string username);
+        Task<User?> GetUserByEmailAsync(string email);
     }
 }

@@ -3,15 +3,13 @@ using TaskManagement.Domain.Entities;
 
 namespace TaskManagement.Infrastructure.Persistence
 {
-    public class AppDbContext : DbContext
+    public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
     {
-        public AppDbContext(DbContextOptions<AppDbContext> options) 
-            : base(options) { }
-
         public DbSet<User> Users { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            // Table & column naming convention
             foreach (var entity in modelBuilder.Model.GetEntityTypes())
             {
                 entity.SetTableName(ToSnakeCase(entity.GetTableName()));
@@ -26,11 +24,19 @@ namespace TaskManagement.Infrastructure.Persistence
                     foreignKey.SetConstraintName(ToSnakeCase(foreignKey.GetConstraintName()));
                 }
             }
-            
-            modelBuilder.Entity<User>().HasIndex(u => u.Username).IsUnique();
+
+            // User entity
+            modelBuilder.Entity<User>()
+                .HasOne(u => u.Profile)
+                .WithOne(p => p.User)
+                .HasForeignKey<UserProfile>(p => p.Id); // Shared primary key
+
+            modelBuilder.Entity<User>()
+                .HasIndex(u => u.Email)
+                .IsUnique();
         }
 
-        private string? ToSnakeCase(string? name)
+        private static string? ToSnakeCase(string? name)
         {
             if (string.IsNullOrEmpty(name))
                 return null;

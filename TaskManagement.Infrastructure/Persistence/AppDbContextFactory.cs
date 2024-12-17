@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
-using System.IO;
 
 namespace TaskManagement.Infrastructure.Persistence
 {
@@ -11,10 +10,15 @@ namespace TaskManagement.Infrastructure.Persistence
         {
             var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
 
+            // Get the current directory
+            var currentDirectory = Directory.GetCurrentDirectory();
+            var parentDirectory = (Directory.GetParent(currentDirectory)?.FullName) 
+                ?? throw new InvalidOperationException("Unable to determine the parent directory.");
+            
             var configuration = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile(Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).FullName, "TaskManagementAPI", "appsettings.json"))
-                .AddJsonFile(Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).FullName, "TaskManagementAPI", "appsettings.Development.json"), optional: true)
+                .SetBasePath(currentDirectory)
+                .AddJsonFile(Path.Combine(parentDirectory, "TaskManagementAPI", "appsettings.json"))
+                .AddJsonFile(Path.Combine(parentDirectory, "TaskManagementAPI", "appsettings.Development.json"), optional: true)
                 .Build();
 
             var connectionString = configuration.GetConnectionString("DefaultConnection");

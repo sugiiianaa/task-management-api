@@ -1,6 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using TaskManagement.Application.DTOs;
+using TaskManagement.Application.DTOs.LoginDtos;
+using TaskManagement.Application.DTOs.RegisterDtos;
 using TaskManagement.Application.Interfaces;
+using TaskManagementAPI.Constants;
+using TaskManagementAPI.Models;
 
 namespace TaskManagementAPI.Endpoints
 {
@@ -8,42 +12,57 @@ namespace TaskManagementAPI.Endpoints
     {
         public static void MapAuthEndpoints(this WebApplication app)
         {
-            app.MapPost("/api/auth/register", async (IAuthService authService, RegisterRequest request) =>
+            app.MapPost("/api/auth/register", async (IUserService userService, RegisterRequest request) =>
             {
-                // TODO : fix issue with api return 400 even the process is success
-                // also handle already registered user error 
-                var response = await authService.RegisterAsync(request);
-
-                if (response.Message == "User registered successfully")
+                var requestDto = new RegisterRequestDto
                 {
-                    return Results.Ok(response);
+                    Email = request.Email,
+                    Name = request.Name,
+                    Password = request.Password,
+                };
+
+                var response = await userService.RegisterUserAsync(requestDto);
+
+                if (!response.IsSuccess)
+                {
+                    return Results.BadRequest(new ApiResponse<string>
+                    {
+                        IsSuccess = false,
+                        Message = ResponseMessage.BadRequest
+                    });
                 }
 
-                return Results.BadRequest(response);
+                return Results.Ok(new ApiResponse<string>
+                {
+                    IsSuccess = true,
+                    Message = ResponseMessage.Success
+                });
             });
 
-            app.MapPost("/api/auth/login", async (IAuthService authService, LoginRequest request) =>
+            app.MapPost("/api/auth/login", async (IUserService userService, LoginRequest request) =>
             {
-                // Validate model manually
-                // TODO : create global helper later
-                var validationResults = new List<ValidationResult>();
-                var validationContext = new ValidationContext(request);
-                bool isValid = Validator.TryValidateObject(request, validationContext, validationResults, true);
-
-                if (!isValid)
+                var requestDto = new LoginRequestDto
                 {
-                    var errors = validationResults.ToDictionary(vr => vr.MemberNames.First(), vr => vr.ErrorMessage);
-                    return Results.BadRequest(new { errors });
+                    Email = request.Email,
+                    Password = request.Password,
+                };
+
+                var response = await userService.LoginUserAsync(requestDto);
+
+                if (!response.IsSuccess)
+                {
+                    return Results.BadRequest(new ApiResponse<string>
+                    {
+                        IsSuccess = false,
+                        Message = ResponseMessage.BadRequest
+                    });
                 }
 
-                var response = await authService.LoginAsync(request);
-
-                if (response.Message == "Login successful")
+                return Results.Ok(new ApiResponse<string>
                 {
-                    return Results.Ok(response);
-                }
-
-                return Results.Unauthorized();
+                    IsSuccess = true,
+                    Message = ResponseMessage.Success
+                });
             });
         }
     }

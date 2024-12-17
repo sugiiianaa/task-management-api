@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using TaskManagement.Application.DTOs;
-using TaskManagement.Application.Interfaces;
+﻿using Microsoft.EntityFrameworkCore;
 using TaskManagement.Domain.Entities;
 using TaskManagement.Infrastructure.Interfaces;
 using TaskManagement.Infrastructure.Persistence;
@@ -23,13 +16,14 @@ namespace TaskManagement.Infrastructure.Repositories
 
         public async Task AddUserAsync(User user)
         {
-            await _appDbContext.Users.AddAsync(user);
+            _appDbContext.Users.Add(user);
             await _appDbContext.SaveChangesAsync();
         }
 
-        public async Task<User?> GetUserByUsernameAsync(string username)
+        public Task<User?> GetUserByEmailAsync(string email)
         {
-            return await _appDbContext.Users.FirstOrDefaultAsync(u => u.Username == username);
+            return _appDbContext.Users
+                .FirstOrDefaultAsync(u => EF.Functions.Like(u.Email, email));
         }
     }
 }
