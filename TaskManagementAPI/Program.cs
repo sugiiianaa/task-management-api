@@ -1,7 +1,9 @@
+using System.Text;
 using AspNetCoreRateLimit;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using TaskManagement.Infrastructure.Persistence;
 using TaskManagementAPI.Endpoints;
@@ -29,6 +31,31 @@ void ConfigureServices(WebApplicationBuilder builder)
     // Register services
     builder.Services.AddApplicationServices();
     builder.Services.AddInfrastructureServices(builder.Configuration);
+
+    // Register jwt service
+    var jwtSettings = builder.Configuration.GetSection("Jwt");
+    
+    builder.Services.AddAuthentication(
+        options =>
+        {
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        })
+        .AddJwtBearer(options =>
+        {
+            options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                ValidIssuer = jwtSettings["ValidIssuer"],
+                ValidAudience = jwtSettings["ValidAudience"],
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Secret"] ?? "Default"))
+            };
+        });
+
+    builder.Services.AddAuthorization();
 
     // Swagger configuration
     builder.Services.AddEndpointsApiExplorer();
@@ -122,8 +149,11 @@ void ConfigureMiddleware(WebApplication app)
     app.UseHttpsRedirection();
     app.UseResponseCompression();
     app.UseIpRateLimiting();
+    app.UseAuthentication();
+    app.UseAuthorization();
     app.UseMiddleware<LoggingMiddleware>();
 
     // Map Endpoints
     app.MapAuthEndpoints();
+    app.MapTaskEndpoint();
 };

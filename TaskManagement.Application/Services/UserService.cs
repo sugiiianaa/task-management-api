@@ -1,6 +1,8 @@
-﻿using TaskManagement.Application.Constants;
+﻿using Microsoft.Extensions.Configuration;
+using TaskManagement.Application.Constants;
 using TaskManagement.Application.DTOs.LoginDtos;
 using TaskManagement.Application.DTOs.RegisterDtos;
+using TaskManagement.Application.Enums;
 using TaskManagement.Application.Interfaces;
 using TaskManagement.Domain.Entities;
 using TaskManagement.Infrastructure.Interfaces;
@@ -11,13 +13,19 @@ namespace TaskManagement.Application.Services
     {
         private readonly IUserRepository _userRepository;
         private readonly IPasswordHasher _passwordHasher;
+        private readonly IGenerateJwtToken _generateJwtToken;
+        private readonly IConfiguration _configuration;
 
         public UserService(
-            IUserRepository userRepository, 
-            IPasswordHasher passwordHasher)
+            IUserRepository userRepository,
+            IPasswordHasher passwordHasher,
+            IGenerateJwtToken generateJwtToken,
+            IConfiguration configuration)
         {
             _userRepository = userRepository;
             _passwordHasher = passwordHasher;
+            _generateJwtToken = generateJwtToken;
+            _configuration = configuration;
         }
 
         public async Task<LoginResponseDto> LoginUserAsync(LoginRequestDto requestDto)
@@ -33,7 +41,6 @@ namespace TaskManagement.Application.Services
                 };
             }
 
-
             if (!_passwordHasher.VerifyPassword(user.PasswordHash, requestDto.Password))
             {
                 return new LoginResponseDto
@@ -43,8 +50,12 @@ namespace TaskManagement.Application.Services
                 };
             }
 
-            // TOOD : implement token generate code later
-            var token = "token";
+            var secret = _configuration["Jwt:Secret"];
+
+            var token = _generateJwtToken.GenerateJwtTokenSync(
+                requestDto.Email, 
+                "User", 
+                _configuration["Jwt:Secret"] ?? "DefaultSecret");
 
             return new LoginResponseDto
             {
@@ -62,7 +73,7 @@ namespace TaskManagement.Application.Services
                 Email = requestDto.Email,
                 Name = requestDto.Name,
                 PasswordHash = hashedPassword,
-                Role = "User"
+                Role = RoleHelper.GetRoleName(Role.User),
             };
 
             var user = await _userRepository.GetUserByEmailAsync(requestDto.Email);

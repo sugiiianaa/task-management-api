@@ -6,8 +6,23 @@ namespace TaskManagement.Infrastructure.Persistence
     public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
     {
         public DbSet<User> Users { get; set; }
+        public DbSet<UserProfile> UserProfiles { get; set; }
+        public DbSet<Domain.Entities.UserTask> UserTasks { get; set; }
+        public DbSet<SubTask> SubTasks { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            // Apply entity configurations
+            modelBuilder.ApplyConfiguration(new UserConfiguration());
+            modelBuilder.ApplyConfiguration(new TaskConfiguration());
+            modelBuilder.ApplyConfiguration(new SubTaskConfiguration());
+
+            // Global naming convetion
+            SetGlobalNamingConventions(modelBuilder);
+        }
+
+        private static void SetGlobalNamingConventions(ModelBuilder modelBuilder)
         {
             // Table & column naming convention
             foreach (var entity in modelBuilder.Model.GetEntityTypes())
@@ -25,15 +40,6 @@ namespace TaskManagement.Infrastructure.Persistence
                 }
             }
 
-            // User entity
-            modelBuilder.Entity<User>()
-                .HasOne(u => u.Profile)
-                .WithOne(p => p.User)
-                .HasForeignKey<UserProfile>(p => p.Id); // Shared primary key
-
-            modelBuilder.Entity<User>()
-                .HasIndex(u => u.Email)
-                .IsUnique();
         }
 
         private static string? ToSnakeCase(string? name)

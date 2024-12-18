@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-using TaskManagement.Application.DTOs;
-using TaskManagement.Application.DTOs.LoginDtos;
+﻿using TaskManagement.Application.DTOs.LoginDtos;
 using TaskManagement.Application.DTOs.RegisterDtos;
 using TaskManagement.Application.Interfaces;
 using TaskManagementAPI.Constants;
@@ -12,7 +10,7 @@ namespace TaskManagementAPI.Endpoints
     {
         public static void MapAuthEndpoints(this WebApplication app)
         {
-            app.MapPost("/api/auth/register", async (IUserService userService, RegisterRequest request) =>
+            app.MapPost("/api/v1/auth/register", async (IUserService userService, RegisterRequest request) =>
             {
                 var requestDto = new RegisterRequestDto
                 {
@@ -39,7 +37,7 @@ namespace TaskManagementAPI.Endpoints
                 });
             });
 
-            app.MapPost("/api/auth/login", async (IUserService userService, LoginRequest request) =>
+            app.MapPost("/api/v1/auth/login", async (IUserService userService, LoginRequest request) =>
             {
                 var requestDto = new LoginRequestDto
                 {
@@ -61,7 +59,8 @@ namespace TaskManagementAPI.Endpoints
                 return Results.Ok(new ApiResponse<string>
                 {
                     IsSuccess = true,
-                    Message = ResponseMessage.Success
+                    Message = ResponseMessage.Success,
+                    Data = response.Token
                 });
             });
         }
