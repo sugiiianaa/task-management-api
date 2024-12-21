@@ -1,6 +1,4 @@
-﻿using System.Runtime.InteropServices;
-
-namespace TaskManagementAPI.Middleware
+﻿namespace TaskManagementAPI.Middleware
 {
     public class LoggingMiddleware
     {

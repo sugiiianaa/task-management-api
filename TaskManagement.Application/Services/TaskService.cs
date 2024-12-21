@@ -6,7 +6,7 @@ namespace TaskManagement.Application.Services
     {
         void ITaskService.GetAllTaskAsync()
         {
-            
+
         }
     }
 }

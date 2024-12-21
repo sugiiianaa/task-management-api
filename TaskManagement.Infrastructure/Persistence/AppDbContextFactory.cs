@@ -12,9 +12,9 @@ namespace TaskManagement.Infrastructure.Persistence
 
             // Get the current directory
             var currentDirectory = Directory.GetCurrentDirectory();
-            var parentDirectory = (Directory.GetParent(currentDirectory)?.FullName) 
+            var parentDirectory = (Directory.GetParent(currentDirectory)?.FullName)
                 ?? throw new InvalidOperationException("Unable to determine the parent directory.");
-            
+
             var configuration = new ConfigurationBuilder()
                 .SetBasePath(currentDirectory)
                 .AddJsonFile(Path.Combine(parentDirectory, "TaskManagementAPI", "appsettings.json"))

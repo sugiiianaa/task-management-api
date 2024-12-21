@@ -1,6 +1,4 @@
-﻿using Microsoft.Extensions.Primitives;
-
-namespace TaskManagement.Application.DTOs.RegisterDtos
+﻿namespace TaskManagement.Application.DTOs.RegisterDtos
 {
     public class RegisterRequestDto
     {

@@ -8,6 +8,6 @@
         public string? Address { get; set; }
 
         // Reference to User class
-        public  required User User { get; set; }
+        public required User User { get; set; }
     }
 }

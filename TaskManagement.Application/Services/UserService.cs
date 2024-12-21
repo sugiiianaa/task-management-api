@@ -33,7 +33,7 @@ namespace TaskManagement.Application.Services
                 };
             }
 
-            if (!_passwordService.VerifyPassword(user.PasswordHash, requestDto.Password))
+            if (!_passwordService.VerifyPassword(requestDto.Password, user.PasswordHash))
             {
                 return new LoginResponseDto
                 {
@@ -45,7 +45,7 @@ namespace TaskManagement.Application.Services
             var secret = _configuration["Jwt:Secret"];
 
             var token = _tokenService.GenerateJwtToken(
-                requestDto.Email, 
+                requestDto.Email,
                 "User");
 
             return new LoginResponseDto
@@ -58,7 +58,7 @@ namespace TaskManagement.Application.Services
         public async Task<RegisterResponseDto> RegisterUserAsync(RegisterRequestDto requestDto)
         {
             var hashedPassword = _passwordService.HashPassword(requestDto.Password);
-            
+
             var userEntity = new User
             {
                 Email = requestDto.Email,
@@ -80,8 +80,9 @@ namespace TaskManagement.Application.Services
 
             await _userRepository.AddUserAsync(userEntity);
 
-            return new RegisterResponseDto { 
-                IsSuccess = true 
+            return new RegisterResponseDto
+            {
+                IsSuccess = true
             };
         }
     }

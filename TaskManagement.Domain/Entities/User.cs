@@ -12,6 +12,6 @@
         public IList<UserTask> Tasks { get; set; } = new List<UserTask>();
 
         // Reference to UserProfile class
-        public UserProfile? Profile {  get; set; }
+        public UserProfile? Profile { get; set; }
     }
 }

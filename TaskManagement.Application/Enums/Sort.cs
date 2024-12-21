@@ -8,7 +8,7 @@
 
     public static class SortHelper
     {
-        private static readonly Dictionary<Sort, string> SortOrder = new Dictionary<Sort, string> 
+        private static readonly Dictionary<Sort, string> SortOrder = new Dictionary<Sort, string>
         {
             {Sort.Ascending, "Ascending" },
             {Sort.Descending, "Descending" }
