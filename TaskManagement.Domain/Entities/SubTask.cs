@@ -8,6 +8,6 @@
 
         // Foreign key to Task
         public Guid TaskId { get; set; }
-        public UserTask Task { get; set; }  // Navigation property to Task
+        public required UserTask Task { get; set; }  // Navigation property to Task
     }
 }

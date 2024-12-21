@@ -9,24 +9,16 @@ using TaskManagement.Infrastructure.Interfaces;
 
 namespace TaskManagement.Application.Services
 {
-    public class UserService : IUserService
+    public class UserService(
+        IUserRepository userRepository,
+        IConfiguration configuration,
+        IPasswordService passwordService,
+        ITokenService tokenService) : IUserService
     {
-        private readonly IUserRepository _userRepository;
-        private readonly IPasswordHasher _passwordHasher;
-        private readonly IGenerateJwtToken _generateJwtToken;
-        private readonly IConfiguration _configuration;
-
-        public UserService(
-            IUserRepository userRepository,
-            IPasswordHasher passwordHasher,
-            IGenerateJwtToken generateJwtToken,
-            IConfiguration configuration)
-        {
-            _userRepository = userRepository;
-            _passwordHasher = passwordHasher;
-            _generateJwtToken = generateJwtToken;
-            _configuration = configuration;
-        }
+        private readonly IUserRepository _userRepository = userRepository;
+        private readonly IConfiguration _configuration = configuration;
+        private readonly IPasswordService _passwordService = passwordService;
+        private readonly ITokenService _tokenService = tokenService;
 
         public async Task<LoginResponseDto> LoginUserAsync(LoginRequestDto requestDto)
         {
@@ -41,7 +33,7 @@ namespace TaskManagement.Application.Services
                 };
             }
 
-            if (!_passwordHasher.VerifyPassword(user.PasswordHash, requestDto.Password))
+            if (!_passwordService.VerifyPassword(user.PasswordHash, requestDto.Password))
             {
                 return new LoginResponseDto
                 {
@@ -52,10 +44,9 @@ namespace TaskManagement.Application.Services
 
             var secret = _configuration["Jwt:Secret"];
 
-            var token = _generateJwtToken.GenerateJwtTokenSync(
+            var token = _tokenService.GenerateJwtToken(
                 requestDto.Email, 
-                "User", 
-                _configuration["Jwt:Secret"] ?? "DefaultSecret");
+                "User");
 
             return new LoginResponseDto
             {
@@ -66,7 +57,7 @@ namespace TaskManagement.Application.Services
 
         public async Task<RegisterResponseDto> RegisterUserAsync(RegisterRequestDto requestDto)
         {
-            var hashedPassword = _passwordHasher.HashPassword(requestDto.Password);
+            var hashedPassword = _passwordService.HashPassword(requestDto.Password);
             
             var userEntity = new User
             {
