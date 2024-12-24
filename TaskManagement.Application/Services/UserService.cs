@@ -45,8 +45,8 @@ namespace TaskManagement.Application.Services
             var secret = _configuration["Jwt:Secret"];
 
             var token = _tokenService.GenerateJwtToken(
-                requestDto.Email,
-                "User");
+                user.Id,
+                user.Role);
 
             return new LoginResponseDto
             {

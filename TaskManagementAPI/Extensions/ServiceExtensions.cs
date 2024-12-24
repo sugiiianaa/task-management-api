@@ -73,6 +73,7 @@ namespace TaskManagementAPI.Extensions
         {
             // Register infrastructure services
             services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<ITaskRepository, TaskRepository>();
         }
 
         private static void AddJwtAuthentication(this IServiceCollection services, IConfiguration configuration)

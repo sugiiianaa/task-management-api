@@ -7,7 +7,7 @@ namespace TaskManagement.Infrastructure.Persistence
     {
         public DbSet<User> Users { get; set; }
         public DbSet<UserProfile> UserProfiles { get; set; }
-        public DbSet<Domain.Entities.UserTask> UserTasks { get; set; }
+        public DbSet<UserTask> UserTasks { get; set; }
         public DbSet<SubTask> SubTasks { get; set; }
 
 

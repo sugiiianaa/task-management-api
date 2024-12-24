@@ -2,6 +2,6 @@
 {
     public interface ITokenService
     {
-        string GenerateJwtToken(string email, string role);
+        string GenerateJwtToken(Guid ownerId, string role);
     }
 }

@@ -16,14 +16,14 @@ namespace TaskManagement.Application.Services
             _jwtSettingsDto = jwtSettingsDto;
         }
 
-        public string GenerateJwtToken(string email, string role)
+        public string GenerateJwtToken(Guid ownerId, string role)
         {
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettingsDto.Secret));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
             var claims = new[]
             {
-                new Claim(JwtRegisteredClaimNames.Sub, email),
+                new Claim(JwtRegisteredClaimNames.Sub, ownerId.ToString()),
                 new Claim(ClaimTypes.Role, role),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };

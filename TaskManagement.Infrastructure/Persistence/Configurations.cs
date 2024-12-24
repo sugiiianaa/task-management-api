@@ -21,9 +21,12 @@ namespace TaskManagement.Infrastructure.Persistence
     {
         public void Configure(EntityTypeBuilder<UserTask> builder)
         {
-            builder.HasOne(t => t.AssignedUser)
+            builder.HasOne(t => t.TaskOwner)
                 .WithMany(u => u.Tasks)
-                .HasForeignKey(t => t.AssignedUserId);
+                .HasForeignKey(t => t.TaskOwnerId);
+
+            builder.Property(t => t.TaskStatus)
+                .HasConversion<string>();
         }
     }
 
