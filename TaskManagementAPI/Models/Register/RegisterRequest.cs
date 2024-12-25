@@ -1,4 +1,4 @@
-﻿namespace TaskManagementAPI.Models
+﻿namespace TaskManagementAPI.Models.Register
 {
     public class RegisterRequest
     {

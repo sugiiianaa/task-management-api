@@ -1,8 +1,11 @@
-﻿using TaskManagement.Application.DTOs.LoginDtos;
-using TaskManagement.Application.DTOs.RegisterDtos;
-using TaskManagement.Application.Interfaces;
+﻿using TaskManagement.Application.Interfaces;
+using TaskManagement.Application.Models.LoginIO;
+using TaskManagement.Application.Models.RegisterIO;
+using TaskManagement.Domain.Dtos;
+using TaskManagement.Domain.Enums;
 using TaskManagementAPI.Constants;
 using TaskManagementAPI.Models;
+using TaskManagementAPI.Models.Register;
 
 namespace TaskManagementAPI.Endpoints
 {
@@ -12,11 +15,15 @@ namespace TaskManagementAPI.Endpoints
         {
             app.MapPost("/api/v1/auth/register", async (IUserService userService, RegisterRequest request) =>
             {
-                var requestDto = new RegisterRequestDto
+                var requestDto = new RegisterInput
                 {
-                    Email = request.Email,
-                    Name = request.Name,
-                    Password = request.Password,
+                    User = new UserDto
+                    {
+                        Name = request.Name,
+                        Email = request.Email,
+                        Password = request.Password,
+                        Role = UserRoles.User
+                    }
                 };
 
                 var response = await userService.RegisterUserAsync(requestDto);
@@ -30,16 +37,24 @@ namespace TaskManagementAPI.Endpoints
                     });
                 }
 
-                return Results.Ok(new ApiResponse<string>
-                {
-                    IsSuccess = true,
-                    Message = ResponseMessage.Success
-                });
+                return Results.Created(
+                    "/api/v1/resource",
+                    new ApiResponse<RegisterResponse>
+                    {
+                        IsSuccess = true,
+                        Message = ResponseMessage.Success,
+                        Data = new RegisterResponse
+                        {
+                            Email = request.Email,
+                            Id = response.Id
+                        }
+                    }
+                );
             });
 
             app.MapPost("/api/v1/auth/login", async (IUserService userService, LoginRequest request) =>
             {
-                var requestDto = new LoginRequestDto
+                var requestDto = new LoginInput
                 {
                     Email = request.Email,
                     Password = request.Password,

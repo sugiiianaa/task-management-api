@@ -1,11 +1,11 @@
-﻿using TaskManagement.Application.DTOs.LoginDtos;
-using TaskManagement.Application.DTOs.RegisterDtos;
+﻿using TaskManagement.Application.Models.LoginIO;
+using TaskManagement.Application.Models.RegisterIO;
 
 namespace TaskManagement.Application.Interfaces
 {
     public interface IUserService
     {
-        Task<RegisterResponseDto> RegisterUserAsync(RegisterRequestDto requestDto);
-        Task<LoginResponseDto> LoginUserAsync(LoginRequestDto requestDto);
+        Task<RegisterOutput> RegisterUserAsync(RegisterInput requestDto);
+        Task<LoginOuput> LoginUserAsync(LoginInput requestDto);
     }
 }

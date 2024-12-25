@@ -1,10 +1,11 @@
-﻿using TaskManagement.Domain.Entities;
+﻿using TaskManagement.Domain.Dtos;
+using TaskManagement.Domain.Entities;
 
 namespace TaskManagement.Infrastructure.Interfaces
 {
     public interface IUserRepository
     {
-        Task AddUserAsync(User user);
+        Task<Guid> AddUserAsync(UserDto user);
         Task<User?> GetUserByEmailAsync(string email);
     }
 }

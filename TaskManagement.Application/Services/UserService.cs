@@ -1,10 +1,9 @@
 ﻿using Microsoft.Extensions.Configuration;
 using TaskManagement.Application.Constants;
-using TaskManagement.Application.DTOs.LoginDtos;
-using TaskManagement.Application.DTOs.RegisterDtos;
-using TaskManagement.Application.Enums;
 using TaskManagement.Application.Interfaces;
-using TaskManagement.Domain.Entities;
+using TaskManagement.Application.Models.LoginIO;
+using TaskManagement.Application.Models.RegisterIO;
+using TaskManagement.Domain.Dtos;
 using TaskManagement.Infrastructure.Interfaces;
 
 namespace TaskManagement.Application.Services
@@ -20,22 +19,22 @@ namespace TaskManagement.Application.Services
         private readonly IPasswordService _passwordService = passwordService;
         private readonly ITokenService _tokenService = tokenService;
 
-        public async Task<LoginResponseDto> LoginUserAsync(LoginRequestDto requestDto)
+        public async Task<LoginOuput> LoginUserAsync(LoginInput input)
         {
-            var user = await _userRepository.GetUserByEmailAsync(requestDto.Email);
+            var user = await _userRepository.GetUserByEmailAsync(input.Email);
 
             if (user == null)
             {
-                return new LoginResponseDto
+                return new LoginOuput
                 {
                     IsSuccess = false,
                     Message = ResponseMessages.NotFound
                 };
             }
 
-            if (!_passwordService.VerifyPassword(requestDto.Password, user.PasswordHash))
+            if (!_passwordService.VerifyPassword(input.Password, user.PasswordHash))
             {
-                return new LoginResponseDto
+                return new LoginOuput
                 {
                     IsSuccess = false,
                     Message = ResponseMessages.BadRequest
@@ -48,41 +47,42 @@ namespace TaskManagement.Application.Services
                 user.Id,
                 user.Role);
 
-            return new LoginResponseDto
+            return new LoginOuput
             {
                 IsSuccess = true,
                 Token = token,
             };
         }
 
-        public async Task<RegisterResponseDto> RegisterUserAsync(RegisterRequestDto requestDto)
+        public async Task<RegisterOutput> RegisterUserAsync(RegisterInput input)
         {
-            var hashedPassword = _passwordService.HashPassword(requestDto.Password);
+            var hashedPassword = _passwordService.HashPassword(input.User.Password);
 
-            var userEntity = new User
+            var userEntity = new UserDto
             {
-                Email = requestDto.Email,
-                Name = requestDto.Name,
-                PasswordHash = hashedPassword,
-                Role = RoleHelper.GetRoleName(Role.User),
+                Email = input.User.Email,
+                Name = input.User.Name,
+                Password = hashedPassword,
+                Role = input.User.Role,
             };
 
-            var user = await _userRepository.GetUserByEmailAsync(requestDto.Email);
+            var user = await _userRepository.GetUserByEmailAsync(input.User.Email);
 
             if (user != null)
             {
-                return new RegisterResponseDto
+                return new RegisterOutput
                 {
                     IsSuccess = false,
                     Message = ResponseMessages.BadRequest
                 };
             }
 
-            await _userRepository.AddUserAsync(userEntity);
+            var userId = await _userRepository.AddUserAsync(userEntity);
 
-            return new RegisterResponseDto
+            return new RegisterOutput
             {
-                IsSuccess = true
+                IsSuccess = true,
+                Id = userId,
             };
         }
     }

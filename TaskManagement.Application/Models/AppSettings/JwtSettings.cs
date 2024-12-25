@@ -1,6 +1,6 @@
-﻿namespace TaskManagement.Application.DTOs.AppSettingsDtos
+﻿namespace TaskManagement.Application.Models.AppSettings
 {
-    public class JwtSettingsDto
+    public class JwtSettings
     {
         public string Secret { get; set; } = string.Empty;
         public string ValidIssuer { get; set; } = string.Empty;

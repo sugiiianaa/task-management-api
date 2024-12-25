@@ -1,8 +1,8 @@
 ﻿using TaskManagement.Domain.Enums;
 
-namespace TaskManagement.Application.DTOs.TaskDtos.CreateTaskDto
+namespace TaskManagement.Application.Models.TaskIO.CreateTaskIO
 {
-    public class CreateTaskRequestDto
+    public class CreateInput
     {
         public required string Title { get; set; }
         public string? Description { get; set; }

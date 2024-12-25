@@ -1,6 +1,6 @@
-﻿using TaskManagement.Application.DTOs.TaskDtos.CreateTaskDto;
-using TaskManagement.Application.DTOs.TaskDtos.GetTaskDto;
-using TaskManagement.Application.Interfaces;
+﻿using TaskManagement.Application.Interfaces;
+using TaskManagement.Application.Models.TaskIO.CreateTaskIO;
+using TaskManagement.Application.Models.TaskIO.GetTaskIO;
 using TaskManagement.Domain.Enums;
 using TaskManagementAPI.Helper;
 using TaskManagementAPI.Models;
@@ -20,7 +20,7 @@ namespace TaskManagementAPI.Endpoints
                     return Results.BadRequest("Invalid or missing owner ID in token.");
                 }
 
-                var requestDto = new GetAllTaskRequestDto
+                var requestDto = new GetAllTaskInput
                 {
                     OwnerId = ownerId.Value
                 };
@@ -46,7 +46,7 @@ namespace TaskManagementAPI.Endpoints
                     return Results.BadRequest("Invalid task status value");
                 }
 
-                var requestDto = new CreateTaskRequestDto
+                var requestDto = new CreateInput
                 {
                     Title = request.Title,
                     Description = request.Description,

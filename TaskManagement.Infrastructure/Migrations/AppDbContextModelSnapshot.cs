@@ -71,9 +71,8 @@ namespace TaskManagement.Infrastructure.Migrations
                         .HasColumnType("text")
                         .HasColumnName("password_hash");
 
-                    b.Property<string>("Role")
-                        .IsRequired()
-                        .HasColumnType("text")
+                    b.Property<int>("Role")
+                        .HasColumnType("integer")
                         .HasColumnName("role");
 
                     b.HasKey("Id");
@@ -126,9 +125,8 @@ namespace TaskManagement.Infrastructure.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("task_owner_id");
 
-                    b.Property<string>("TaskStatus")
-                        .IsRequired()
-                        .HasColumnType("text")
+                    b.Property<int>("TaskStatus")
+                        .HasColumnType("integer")
                         .HasColumnName("task_status");
 
                     b.Property<string>("Title")

@@ -2,9 +2,9 @@
 {
     public enum UserTaskStatus
     {
-        Todo,
-        WorkingOn,
-        Finished
+        Todo = 0,
+        WorkingOn = 1,
+        Finished = 2
     }
 
     public static class TaskHelper

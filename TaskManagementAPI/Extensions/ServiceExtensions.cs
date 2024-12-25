@@ -4,8 +4,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using TaskManagement.Application.DTOs.AppSettingsDtos;
 using TaskManagement.Application.Interfaces;
+using TaskManagement.Application.Models.AppSettings;
 using TaskManagement.Application.Services;
 using TaskManagement.Infrastructure.Interfaces;
 using TaskManagement.Infrastructure.Persistence;
@@ -26,10 +26,10 @@ namespace TaskManagementAPI.Extensions
             services.AddInfrastructureServices(configuration);
 
             // Register JwtSettingsDto with validation
-            services.Configure<JwtSettingsDto>(configuration.GetSection("Jwt"));
+            services.Configure<JwtSettings>(configuration.GetSection("Jwt"));
             services.AddSingleton(provider =>
             {
-                var options = provider.GetRequiredService<IOptions<JwtSettingsDto>>().Value;
+                var options = provider.GetRequiredService<IOptions<JwtSettings>>().Value;
 
                 // Validation logic
                 if (string.IsNullOrEmpty(options.Secret) ||
@@ -78,7 +78,7 @@ namespace TaskManagementAPI.Extensions
 
         private static void AddJwtAuthentication(this IServiceCollection services, IConfiguration configuration)
         {
-            var jwtSettings = configuration.GetSection("Jwt").Get<JwtSettingsDto>();
+            var jwtSettings = configuration.GetSection("Jwt").Get<JwtSettings>();
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                 {

@@ -1,6 +1,6 @@
-﻿namespace TaskManagement.Application.DTOs.RegisterDtos
+﻿namespace TaskManagement.Application.Models.TaskIO.CreateTaskIO
 {
-    public class RegisterResponseDto
+    public class CreateOutput
     {
         public bool IsSuccess { get; set; }
         public string? Message { get; set; }

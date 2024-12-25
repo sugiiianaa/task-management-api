@@ -2,29 +2,32 @@
 using System.Security.Claims;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
-using TaskManagement.Application.DTOs.AppSettingsDtos;
 using TaskManagement.Application.Interfaces;
+using TaskManagement.Application.Models.AppSettings;
+using TaskManagement.Domain.Enums;
 
 namespace TaskManagement.Application.Services
 {
     public class TokenService : ITokenService
     {
-        private readonly JwtSettingsDto _jwtSettingsDto;
+        private readonly JwtSettings _jwtSettingsDto;
 
-        public TokenService(JwtSettingsDto jwtSettingsDto)
+        public TokenService(JwtSettings jwtSettingsDto)
         {
             _jwtSettingsDto = jwtSettingsDto;
         }
 
-        public string GenerateJwtToken(Guid ownerId, string role)
+        public string GenerateJwtToken(Guid ownerId, UserRoles role)
         {
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettingsDto.Secret));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
+            var RoleString = RoleHelper.GetRole(role);
+
             var claims = new[]
             {
                 new Claim(JwtRegisteredClaimNames.Sub, ownerId.ToString()),
-                new Claim(ClaimTypes.Role, role),
+                new Claim(ClaimTypes.Role, RoleString),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
 

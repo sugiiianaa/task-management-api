@@ -14,6 +14,9 @@ namespace TaskManagement.Infrastructure.Persistence
 
             builder.HasIndex(u => u.Email)
                 .IsUnique();
+
+            builder.Property(u => u.Role)
+                .HasConversion<int>();
         }
     }
 
@@ -26,7 +29,7 @@ namespace TaskManagement.Infrastructure.Persistence
                 .HasForeignKey(t => t.TaskOwnerId);
 
             builder.Property(t => t.TaskStatus)
-                .HasConversion<string>();
+                .HasConversion<int>();
         }
     }
 

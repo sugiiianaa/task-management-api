@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using TaskManagement.Domain.Dtos;
 using TaskManagement.Domain.Entities;
 using TaskManagement.Infrastructure.Interfaces;
 using TaskManagement.Infrastructure.Persistence;
@@ -14,10 +15,21 @@ namespace TaskManagement.Infrastructure.Repositories
             _appDbContext = appDbContext;
         }
 
-        public async Task AddUserAsync(User user)
+        public async Task<Guid> AddUserAsync(UserDto user)
         {
-            _appDbContext.Users.Add(user);
+            var userEntity = new User
+            {
+                Name = user.Name,
+                Email = user.Email,
+                PasswordHash = user.Password,
+                Role = user.Role,
+            };
+
+            _appDbContext.Users.Add(userEntity);
+
             await _appDbContext.SaveChangesAsync();
+
+            return userEntity.Id;
         }
 
         public Task<User?> GetUserByEmailAsync(string email)
@@ -25,5 +37,6 @@ namespace TaskManagement.Infrastructure.Repositories
             return _appDbContext.Users
                 .FirstOrDefaultAsync(u => EF.Functions.Like(u.Email, email));
         }
+
     }
 }

@@ -1,6 +1,6 @@
-﻿namespace TaskManagement.Application.DTOs.LoginDtos
+﻿namespace TaskManagement.Application.Models.LoginIO
 {
-    public class LoginResponseDto
+    public class LoginOuput
     {
         public bool IsSuccess { get; set; }
         public string? Message { get; set; }

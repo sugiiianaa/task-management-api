@@ -1,8 +1,8 @@
 ﻿using TaskManagement.Domain.Dtos;
 
-namespace TaskManagement.Application.DTOs.TaskDtos.GetTaskDto
+namespace TaskManagement.Application.Models.TaskIO.GetTaskIO
 {
-    public class GetAllTaskResultDto
+    public class GetAllTaskOutput
     {
         public IList<UserTaskDto>? UserTasks { get; set; }
     };

@@ -12,8 +12,8 @@ using TaskManagement.Infrastructure.Persistence;
 namespace TaskManagement.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20241221055646_UpdateUserTaskColumnName")]
-    partial class UpdateUserTaskColumnName
+    [Migration("20241225002003_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -129,9 +129,8 @@ namespace TaskManagement.Infrastructure.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("task_owner_id");
 
-                    b.Property<string>("TaskStatus")
-                        .IsRequired()
-                        .HasColumnType("text")
+                    b.Property<int>("TaskStatus")
+                        .HasColumnType("integer")
                         .HasColumnName("task_status");
 
                     b.Property<string>("Title")

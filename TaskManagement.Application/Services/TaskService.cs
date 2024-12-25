@@ -1,6 +1,6 @@
-﻿using TaskManagement.Application.DTOs.TaskDtos.CreateTaskDto;
-using TaskManagement.Application.DTOs.TaskDtos.GetTaskDto;
-using TaskManagement.Application.Interfaces;
+﻿using TaskManagement.Application.Interfaces;
+using TaskManagement.Application.Models.TaskIO.CreateTaskIO;
+using TaskManagement.Application.Models.TaskIO.GetTaskIO;
 using TaskManagement.Domain.Dtos;
 using TaskManagement.Infrastructure.Interfaces;
 
@@ -15,7 +15,7 @@ namespace TaskManagement.Application.Services
             _taskRepository = taskRepository;
         }
 
-        public async Task<CreateTaskResultDto> CreateTaskAsync(CreateTaskRequestDto request)
+        public async Task<CreateOutput> CreateTaskAsync(CreateInput request)
         {
             var userTask = new UserTaskDto
             {
@@ -29,14 +29,14 @@ namespace TaskManagement.Application.Services
             try
             {
                 var IsCreated = await _taskRepository.CreateUserTaskAsync(userTask);
-                return new CreateTaskResultDto
+                return new CreateOutput
                 {
                     IsSuccess = IsCreated,
                 };
             }
             catch (Exception ex)
             {
-                return new CreateTaskResultDto
+                return new CreateOutput
                 {
                     IsSuccess = false,
                     Message = ex.Message
@@ -44,11 +44,11 @@ namespace TaskManagement.Application.Services
             }
         }
 
-        public async Task<GetAllTaskResultDto> GetTasksAsync(GetAllTaskRequestDto request)
+        public async Task<GetAllTaskOutput> GetTasksAsync(GetAllTaskInput request)
         {
             var tasks = await _taskRepository.GetAllUserTaskAsync(request.OwnerId);
 
-            return new GetAllTaskResultDto
+            return new GetAllTaskOutput
             {
                 UserTasks = tasks
             };
