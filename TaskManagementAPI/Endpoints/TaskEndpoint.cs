@@ -1,9 +1,11 @@
 ﻿using TaskManagement.Application.Interfaces;
 using TaskManagement.Application.Models.TaskIO.CreateTaskIO;
 using TaskManagement.Application.Models.TaskIO.GetTaskIO;
+using TaskManagement.Application.Models.TaskIO.UpdateTaskIO;
 using TaskManagement.Domain.Enums;
 using TaskManagementAPI.Helper;
 using TaskManagementAPI.Models;
+using TaskManagementAPI.Models.UpdateTask;
 
 namespace TaskManagementAPI.Endpoints
 {
@@ -57,6 +59,43 @@ namespace TaskManagementAPI.Endpoints
 
                 var result = await taskService.CreateTaskAsync(requestDto);
                 return Results.Ok(result);
+            }).RequireAuthorization();
+
+            app.MapPut("/api/v1/update-task", async (ITaskService taskService, UpdateTaskRequest request, HttpContext httpcontext) =>
+            {
+                var ownerId = httpcontext.User.GetOwnerIdClaim();
+
+                if (ownerId == null) return Results.BadRequest();
+
+                UserTaskStatus? taskStatus = null;
+
+                if (request.TaskStatus != null)
+                {
+                    taskStatus = TaskHelper.GetStatusFromString(request.TaskStatus);
+
+                    if (taskStatus == null)
+                    {
+                        return Results.BadRequest("Invalid task status value");
+                    }
+                }
+
+                var input = new UpdateTaskInput
+                {
+                    Id = request.TaskId,
+                    Title = request.Title,
+                    Description = request.Description,
+                    ExpectedFinishDate = request.ExpectedFinishDate,
+                    Status = taskStatus,
+                };
+
+                var output = await taskService.UpdateTaskAsync(input);
+
+                if (output.IsSuccess == false)
+                {
+                    return Results.InternalServerError();
+                }
+
+                return Results.Ok(output);
             }).RequireAuthorization();
         }
     }

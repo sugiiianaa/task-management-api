@@ -5,6 +5,7 @@ using TaskManagement.Domain.Dtos;
 using TaskManagement.Domain.Enums;
 using TaskManagementAPI.Constants;
 using TaskManagementAPI.Models;
+using TaskManagementAPI.Models.Login;
 using TaskManagementAPI.Models.Register;
 
 namespace TaskManagementAPI.Endpoints
@@ -62,7 +63,7 @@ namespace TaskManagementAPI.Endpoints
 
                 var response = await userService.LoginUserAsync(requestDto);
 
-                if (!response.IsSuccess)
+                if (!response.IsSuccess || response.Token == null)
                 {
                     return Results.BadRequest(new ApiResponse<string>
                     {
@@ -71,11 +72,14 @@ namespace TaskManagementAPI.Endpoints
                     });
                 }
 
-                return Results.Ok(new ApiResponse<string>
+                return Results.Ok(new ApiResponse<LoginResponse>
                 {
                     IsSuccess = true,
                     Message = ResponseMessage.Success,
-                    Data = response.Token
+                    Data = new LoginResponse
+                    {
+                        Token = response.Token
+                    }
                 });
             });
         }

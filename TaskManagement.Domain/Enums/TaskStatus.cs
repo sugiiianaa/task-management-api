@@ -12,7 +12,7 @@
         // Mapping from enum to string
         private static readonly Dictionary<UserTaskStatus, string> StatusToString = new Dictionary<UserTaskStatus, string>
         {
-            {UserTaskStatus.Todo, "to_do" },
+            {UserTaskStatus.Todo, "todo" },
             {UserTaskStatus.WorkingOn, "working_on" },
             {UserTaskStatus.Finished, "finished" },
         };
@@ -34,7 +34,7 @@
 
             var normalizedStatus = status.ToLower();
 
-            return StringToStatus.TryGetValue(normalizedStatus, out UserTaskStatus value) ? value : (UserTaskStatus?)null;
+            return StringToStatus.TryGetValue(normalizedStatus, out UserTaskStatus value) ? value : null;
         }
     }
 }

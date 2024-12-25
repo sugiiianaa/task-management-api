@@ -1,6 +1,7 @@
 ﻿using TaskManagement.Application.Interfaces;
 using TaskManagement.Application.Models.TaskIO.CreateTaskIO;
 using TaskManagement.Application.Models.TaskIO.GetTaskIO;
+using TaskManagement.Application.Models.TaskIO.UpdateTaskIO;
 using TaskManagement.Domain.Dtos;
 using TaskManagement.Infrastructure.Interfaces;
 
@@ -15,15 +16,15 @@ namespace TaskManagement.Application.Services
             _taskRepository = taskRepository;
         }
 
-        public async Task<CreateOutput> CreateTaskAsync(CreateInput request)
+        public async Task<CreateOutput> CreateTaskAsync(CreateInput input)
         {
             var userTask = new UserTaskDto
             {
-                Title = request.Title,
-                Description = request.Description,
-                ExpectedFinishDate = request.ExpectedFinishDate,
-                OwnerId = request.TaskOwnerId,
-                TaskStatus = request.TaskStatus
+                Title = input.Title,
+                Description = input.Description,
+                ExpectedFinishDate = input.ExpectedFinishDate,
+                OwnerId = input.TaskOwnerId,
+                TaskStatus = input.TaskStatus
             };
 
             try
@@ -44,13 +45,33 @@ namespace TaskManagement.Application.Services
             }
         }
 
-        public async Task<GetAllTaskOutput> GetTasksAsync(GetAllTaskInput request)
+        public async Task<GetAllTaskOutput> GetTasksAsync(GetAllTaskInput input)
         {
-            var tasks = await _taskRepository.GetAllUserTaskAsync(request.OwnerId);
+            var tasks = await _taskRepository.GetAllUserTaskAsync(input.OwnerId);
 
             return new GetAllTaskOutput
             {
                 UserTasks = tasks
+            };
+        }
+
+        public async Task<UpdateTaskOutput> UpdateTaskAsync(UpdateTaskInput input)
+        {
+            var Dto = new UserTaskDto
+            {
+                Id = input.Id,
+                Title = input.Title ?? null,
+                Description = input.Description ?? null,
+                ExpectedFinishDate = input.ExpectedFinishDate ?? null,
+                TaskStatus = input.Status ?? null
+            };
+
+            var taskId = await _taskRepository.UpdateUserTaskAsync(Dto);
+
+            return new UpdateTaskOutput
+            {
+                IsSuccess = taskId != null,
+                TaskId = taskId ?? null
             };
         }
     }

@@ -41,8 +41,6 @@ namespace TaskManagement.Application.Services
                 };
             }
 
-            var secret = _configuration["Jwt:Secret"];
-
             var token = _tokenService.GenerateJwtToken(
                 user.Id,
                 user.Role);
