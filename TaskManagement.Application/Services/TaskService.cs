@@ -86,6 +86,12 @@ namespace TaskManagement.Application.Services
         {
             var taskId = await _taskRepository.DeleteUserTaskAsync(input.TaskId, input.OwnerTaskId);
 
+            if (taskId == null)
+            {
+                return new ApplicationOutputGenericModel<Guid?>
+                { ErrorMessage = ApplicationErrorMessage.NotFound };
+            }
+
             return new ApplicationOutputGenericModel<Guid?>
             {
                 Data = taskId,

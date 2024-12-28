@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using AspNetCoreRateLimit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Http.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -45,6 +46,13 @@ namespace TaskManagementAPI.Extensions
             // Configure Authentication and Authorization
             services.AddJwtAuthentication(configuration);
             services.AddAuthorization();
+
+            // Configure Json Serialization
+            services.Configure<JsonOptions>(options =>
+            {
+                options.SerializerOptions.PropertyNameCaseInsensitive = true;
+                options.SerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
+            });
 
             // Configure Swagger
             services.AddSwaggerGen();

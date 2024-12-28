@@ -3,7 +3,9 @@ using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using TaskManagement.Infrastructure.Persistence;
 using TaskManagementAPI.Endpoints;
+using TaskManagementAPI.Enums;
 using TaskManagementAPI.Middleware;
+using TaskManagementAPI.Models.ApiResponseModel;
 
 namespace TaskManagementAPI.Extensions
 {
@@ -27,27 +29,21 @@ namespace TaskManagementAPI.Extensions
                 dbContext.Database.Migrate();
             }
 
-            // Error handling
+            // Global error handling
             app.UseExceptionHandler(errorApp =>
             {
                 errorApp.Run(async context =>
                 {
-                    context.Response.ContentType = "application/json";
                     var exception = context.Features.Get<IExceptionHandlerFeature>()?.Error;
 
-                    var errorResponse = new
+                    var response = new ApiErrorResponse
                     {
-                        StatusCode = exception is BadHttpRequestException
-                            ? StatusCodes.Status400BadRequest
-                            : StatusCodes.Status500InternalServerError,
-                        Message = exception is BadHttpRequestException
-                            ? "Invalid request format."
-                            : "An unexpected error occurred.",
-                        Details = app.Environment.IsDevelopment() ? exception?.StackTrace : null
+                        Message = app.Environment.IsDevelopment() ? exception.Message : ApiResponseMessageHelper.GetMessage(ApiResponseMessages.InternalServerError)
                     };
 
-                    context.Response.StatusCode = errorResponse.StatusCode;
-                    await context.Response.WriteAsJsonAsync(errorResponse);
+                    context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+                    context.Response.ContentType = "application/json";
+                    await context.Response.WriteAsJsonAsync(response);
                 });
             });
 
@@ -57,6 +53,8 @@ namespace TaskManagementAPI.Extensions
             app.UseIpRateLimiting();
             app.UseAuthentication();
             app.UseAuthorization();
+
+            app.UseMiddleware<BadRequestHandlingMiddleware>();
             app.UseMiddleware<LoggingMiddleware>();
 
             // Map Endpoints

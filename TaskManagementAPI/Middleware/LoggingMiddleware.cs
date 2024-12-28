@@ -26,9 +26,7 @@
                 // Log the exception and continue
                 _logger.LogError(ex, "Unhandled exception occurred while processing the request.");
 
-                // Optionally, handle the exception and return a response
-                context.Response.StatusCode = 500;
-                await context.Response.WriteAsync("An unexpected error occurred.");
+                throw;
             }
         }
     }

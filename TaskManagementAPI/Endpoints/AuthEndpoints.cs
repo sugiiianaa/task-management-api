@@ -10,7 +10,7 @@ namespace TaskManagementAPI.Endpoints
     {
         public static void MapAuthEndpoints(this WebApplication app)
         {
-            app.MapPost("/api/v1/auth/register", async (IAuthService authService, RegisterRequest request) =>
+            app.MapPost("/api/v1/auth/register", async (IAuthService authService, HttpContext context, RegisterRequest request) =>
             {
                 var input = new RegisterUserInput
                 {
