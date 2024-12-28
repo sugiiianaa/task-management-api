@@ -1,14 +1,13 @@
 ﻿using TaskManagement.Domain.Enums;
 
-namespace TaskManagement.Domain.Dtos
+namespace TaskManagement.Application.Models.InputModel.UserTask
 {
-    public class UserTaskDto
+    public class CreateTaskInput
     {
-        public Guid Id { get; set; }
         public required string Title { get; set; }
         public string? Description { get; set; }
         public DateTime ExpectedFinishDate { get; set; }
-        public Guid OwnerId { get; set; }
+        public Guid TaskOwnerId { get; set; }
         public UserTaskStatus TaskStatus { get; set; }
     }
 }

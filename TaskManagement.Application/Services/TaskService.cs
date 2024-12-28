@@ -1,7 +1,6 @@
 ﻿using TaskManagement.Application.Interfaces;
-using TaskManagement.Application.Models.TaskIO.CreateTaskIO;
-using TaskManagement.Application.Models.TaskIO.GetTaskIO;
-using TaskManagement.Application.Models.TaskIO.UpdateTaskIO;
+using TaskManagement.Application.Models;
+using TaskManagement.Application.Models.InputModel.UserTask;
 using TaskManagement.Domain.Dtos;
 using TaskManagement.Infrastructure.Interfaces;
 
@@ -16,7 +15,7 @@ namespace TaskManagement.Application.Services
             _taskRepository = taskRepository;
         }
 
-        public async Task<CreateOutput> CreateTaskAsync(CreateInput input)
+        public async Task<ApplicationOutputGenericModel<Guid?>> CreateTaskAsync(CreateTaskInput input)
         {
             var userTask = new UserTaskDto
             {
@@ -27,52 +26,55 @@ namespace TaskManagement.Application.Services
                 TaskStatus = input.TaskStatus
             };
 
-            try
-            {
-                var IsCreated = await _taskRepository.CreateUserTaskAsync(userTask);
-                return new CreateOutput
-                {
-                    IsSuccess = IsCreated,
-                };
-            }
-            catch (Exception ex)
-            {
-                return new CreateOutput
-                {
-                    IsSuccess = false,
-                    Message = ex.Message
-                };
-            }
-        }
+            var taskId = await _taskRepository.CreateUserTaskAsync(userTask);
 
-        public async Task<GetAllTaskOutput> GetTasksAsync(GetAllTaskInput input)
-        {
-            var tasks = await _taskRepository.GetAllUserTaskAsync(input.OwnerId);
-
-            return new GetAllTaskOutput
+            return new ApplicationOutputGenericModel<Guid?>
             {
-                UserTasks = tasks
+                Data = taskId,
             };
         }
 
-        public async Task<UpdateTaskOutput> UpdateTaskAsync(UpdateTaskInput input)
+        public async Task<ApplicationOutputGenericModel<IList<UserTaskDto?>>> GetTasksAsync(Guid input)
         {
+            var tasks = await _taskRepository.GetAllUserTaskAsync(input);
+
+            return new ApplicationOutputGenericModel<IList<UserTaskDto?>>
+            {
+                Data = tasks,
+            };
+        }
+
+        public async Task<ApplicationOutputGenericModel<Guid?>> UpdateTaskAsync(UpdateTaskInput input)
+        {
+            var existingTask = await _taskRepository.GetUserTaskByIdAsync(input.TaskId);
+
             var Dto = new UserTaskDto
             {
-                Id = input.Id,
-                Title = input.Title ?? null,
-                Description = input.Description ?? null,
-                ExpectedFinishDate = input.ExpectedFinishDate ?? null,
-                TaskStatus = input.Status ?? null
+                Id = input.TaskId,
+                Title = input.Title ?? existingTask.Title,
+                Description = input.Description ?? existingTask.Description,
+                ExpectedFinishDate = input.ExpectedFinishDate ?? existingTask.ExpectedFinishDate,
+                TaskStatus = input.TaskStatus ?? existingTask.TaskStatus
             };
 
             var taskId = await _taskRepository.UpdateUserTaskAsync(Dto);
 
-            return new UpdateTaskOutput
+            return new ApplicationOutputGenericModel<Guid?>
             {
-                IsSuccess = taskId != null,
-                TaskId = taskId ?? null
+                Data = taskId,
             };
         }
+
+        public async Task<ApplicationOutputGenericModel<Guid?>> DeleteTaskAsync(DeleteTaskInput input)
+        {
+            var taskId = await _taskRepository.DeleteUserTaskAsync(input.TaskId, input.OwnerTaskId);
+
+            return new ApplicationOutputGenericModel<Guid?>
+            {
+                Data = taskId,
+            };
+        }
+
+
     }
 }

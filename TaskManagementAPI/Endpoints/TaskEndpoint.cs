@@ -1,11 +1,12 @@
-﻿using TaskManagement.Application.Interfaces;
-using TaskManagement.Application.Models.TaskIO.CreateTaskIO;
-using TaskManagement.Application.Models.TaskIO.GetTaskIO;
-using TaskManagement.Application.Models.TaskIO.UpdateTaskIO;
+﻿using Microsoft.AspNetCore.Mvc;
+using TaskManagement.Application.Interfaces;
+using TaskManagement.Application.Models.InputModel.UserTask;
 using TaskManagement.Domain.Enums;
+using TaskManagementAPI.Enums;
 using TaskManagementAPI.Helper;
-using TaskManagementAPI.Models;
-using TaskManagementAPI.Models.UpdateTask;
+using TaskManagementAPI.Models.ApiResponseModel;
+using TaskManagementAPI.Models.DataResponseModel;
+using TaskManagementAPI.Models.RequestModel.UserTask;
 
 namespace TaskManagementAPI.Endpoints
 {
@@ -19,17 +20,30 @@ namespace TaskManagementAPI.Endpoints
 
                 if (ownerId == null)
                 {
-                    return Results.BadRequest("Invalid or missing owner ID in token.");
+                    var apiErrorResponseHelper = new ApiErrorResponseHelper();
+                    return apiErrorResponseHelper.SendMessage(ApiResponseMessages.Unauthorized);
                 }
 
-                var requestDto = new GetAllTaskInput
+                var output = await taskService.GetTasksAsync(ownerId.Value);
+
+                if (output.ErrorMessage.HasValue)
                 {
-                    OwnerId = ownerId.Value
+                    var apiErrorResponseHelper = new ApiErrorResponseHelper();
+                    return apiErrorResponseHelper.SendMessage(output.ErrorMessage.Value);
+                }
+
+                var dataResponse = new GetUserTaskData
+                {
+                    Title = output.Data.Title,
+                    Description = output.Data.Description,
+                    ExpectedFinishDate = output.Data.ExpectedFinishDate,
+                    TaskStatus = TaskHelper.GetStatus(output.Data.TaskStatus),
                 };
 
-                var result = await taskService.GetTasksAsync(requestDto);
-
-                return Results.Ok(result);
+                return Results.Ok(new ApiSuccessResponse<GetUserTaskData>
+                {
+                    Data = dataResponse
+                });
             }).RequireAuthorization();
 
             app.MapPost("/api/v1/create-task", async (ITaskService taskService, CreateUserTaskRequest request, HttpContext httpContext) =>
@@ -38,64 +52,112 @@ namespace TaskManagementAPI.Endpoints
 
                 if (ownerId == null)
                 {
-                    return Results.BadRequest("Invalid or missing owner ID in token.");
+                    var apiErrorResponseHelper = new ApiErrorResponseHelper();
+                    return apiErrorResponseHelper.SendMessage(ApiResponseMessages.Unauthorized);
                 }
 
-                var taskStatus = TaskHelper.GetStatusFromString(request.TaskStatus);
-
-                if (taskStatus == null)
-                {
-                    return Results.BadRequest("Invalid task status value");
-                }
-
-                var requestDto = new CreateInput
+                var input = new CreateTaskInput
                 {
                     Title = request.Title,
                     Description = request.Description,
-                    ExpectedFinishDate = request.ExpectedFinishDate ?? DateTime.UtcNow,
-                    TaskStatus = taskStatus.Value,
+                    ExpectedFinishDate = request.ExpectedFinishDate,
+                    TaskStatus = UserTaskStatus.Todo,
                     TaskOwnerId = ownerId.Value,
                 };
 
-                var result = await taskService.CreateTaskAsync(requestDto);
-                return Results.Ok(result);
+                var output = await taskService.CreateTaskAsync(input);
+
+                if (output.ErrorMessage.HasValue)
+                {
+                    var apiErrorResponseHelper = new ApiErrorResponseHelper();
+                    return apiErrorResponseHelper.SendMessage(output.ErrorMessage.Value);
+                }
+
+                return Results.Created(
+                    "/api/v1/resource",
+                    new ApiSuccessResponse<Guid>
+                    {
+                        Data = output.Data.Value
+                    });
             }).RequireAuthorization();
 
-            app.MapPut("/api/v1/update-task", async (ITaskService taskService, UpdateTaskRequest request, HttpContext httpcontext) =>
+            app.MapPatch("/api/v1/update-task", async (ITaskService taskService, UpdateUserTaskRequest request, HttpContext httpContext) =>
             {
-                var ownerId = httpcontext.User.GetOwnerIdClaim();
+                var ownerId = httpContext.User.GetOwnerIdClaim();
 
-                if (ownerId == null) return Results.BadRequest();
+                if (ownerId == null)
+                {
+                    var apiErrorResponseHelper = new ApiErrorResponseHelper();
+                    return apiErrorResponseHelper.SendMessage(ApiResponseMessages.Unauthorized);
+                }
 
-                UserTaskStatus? taskStatus = null;
+                UserTaskStatus? userTaskStatusEnum = null;
 
                 if (request.TaskStatus != null)
                 {
-                    taskStatus = TaskHelper.GetStatusFromString(request.TaskStatus);
-
-                    if (taskStatus == null)
+                    userTaskStatusEnum = TaskHelper.GetStatusFromString(request.TaskStatus);
+                    if (userTaskStatusEnum == null)
                     {
-                        return Results.BadRequest("Invalid task status value");
+                        var apiErrorResponseHelper = new ApiErrorResponseHelper();
+                        return apiErrorResponseHelper.SendMessage(ApiResponseMessages.BadRequest);
                     }
                 }
 
                 var input = new UpdateTaskInput
                 {
-                    Id = request.TaskId,
+                    TaskId = request.TaskId,
                     Title = request.Title,
                     Description = request.Description,
+                    TaskOwnerId = ownerId.Value,
                     ExpectedFinishDate = request.ExpectedFinishDate,
-                    Status = taskStatus,
+                    TaskStatus = userTaskStatusEnum,
                 };
 
                 var output = await taskService.UpdateTaskAsync(input);
 
-                if (output.IsSuccess == false)
+                if (output.ErrorMessage.HasValue)
                 {
-                    return Results.InternalServerError();
+                    var apiErrorResponseHelper = new ApiErrorResponseHelper();
+                    return apiErrorResponseHelper.SendMessage(output.ErrorMessage.Value);
                 }
 
-                return Results.Ok(output);
+                return Results.Ok(
+                  new ApiSuccessResponse<Guid>
+                  {
+                      Data = output.Data.Value
+                  });
+
+            }).RequireAuthorization();
+
+            app.MapDelete("/api/v1/delete-task/{taskId}", async (ITaskService taskService, [FromRoute] Guid taskId, HttpContext httpContext) =>
+            {
+                var ownerId = httpContext.User.GetOwnerIdClaim();
+
+                if (ownerId == null)
+                {
+                    var apiErrorResponseHelper = new ApiErrorResponseHelper();
+                    return apiErrorResponseHelper.SendMessage(ApiResponseMessages.Unauthorized);
+                }
+
+                var input = new DeleteTaskInput
+                {
+                    TaskId = taskId,
+                    OwnerTaskId = ownerId.Value,
+                };
+
+                var output = await taskService.DeleteTaskAsync(input);
+
+                if (output.ErrorMessage.HasValue)
+                {
+                    var apiErrorResponseHelper = new ApiErrorResponseHelper();
+                    return apiErrorResponseHelper.SendMessage(output.ErrorMessage.Value);
+                }
+
+                return Results.Ok(
+                 new ApiSuccessResponse<Guid>
+                 {
+                     Data = output.Data.Value
+                 });
             }).RequireAuthorization();
         }
     }

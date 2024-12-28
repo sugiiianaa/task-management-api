@@ -1,12 +1,8 @@
 ﻿using TaskManagement.Application.Interfaces;
-using TaskManagement.Application.Models.LoginIO;
-using TaskManagement.Application.Models.RegisterIO;
-using TaskManagement.Domain.Dtos;
-using TaskManagement.Domain.Enums;
-using TaskManagementAPI.Constants;
-using TaskManagementAPI.Models;
-using TaskManagementAPI.Models.Login;
-using TaskManagementAPI.Models.Register;
+using TaskManagement.Application.Models.InputModel.Auth;
+using TaskManagementAPI.Helper;
+using TaskManagementAPI.Models.ApiResponseModel;
+using TaskManagementAPI.Models.RequestModel.Auth;
 
 namespace TaskManagementAPI.Endpoints
 {
@@ -14,72 +10,52 @@ namespace TaskManagementAPI.Endpoints
     {
         public static void MapAuthEndpoints(this WebApplication app)
         {
-            app.MapPost("/api/v1/auth/register", async (IUserService userService, RegisterRequest request) =>
+            app.MapPost("/api/v1/auth/register", async (IAuthService authService, RegisterRequest request) =>
             {
-                var requestDto = new RegisterInput
+                var input = new RegisterUserInput
                 {
-                    User = new UserDto
-                    {
-                        Name = request.Name,
-                        Email = request.Email,
-                        Password = request.Password,
-                        Role = UserRoles.User
-                    }
+                    Email = request.Email,
+                    Password = request.Password,
+                    ReTypePassword = request.ReTypePassword,
+                    Name = request.Name
                 };
 
-                var response = await userService.RegisterUserAsync(requestDto);
+                var output = await authService.RegisterUserAsync(input);
 
-                if (!response.IsSuccess)
+                if (output.ErrorMessage.HasValue)
                 {
-                    return Results.BadRequest(new ApiResponse<string>
-                    {
-                        IsSuccess = false,
-                        Message = response.Message ?? "An error occured while process the request"
-                    });
+                    var apiErrorResponseHelper = new ApiErrorResponseHelper();
+                    return apiErrorResponseHelper.SendMessage(output.ErrorMessage.Value);
                 }
 
                 return Results.Created(
                     "/api/v1/resource",
-                    new ApiResponse<RegisterResponse>
+                    new ApiSuccessResponse<Guid>
                     {
-                        IsSuccess = true,
-                        Message = ResponseMessage.Success,
-                        Data = new RegisterResponse
-                        {
-                            Email = request.Email,
-                            Id = response.Id
-                        }
+                        Data = output.Data.Value
                     }
                 );
             });
 
-            app.MapPost("/api/v1/auth/login", async (IUserService userService, LoginRequest request) =>
+            app.MapPost("/api/v1/auth/login", async (IAuthService authService, LoginRequest request) =>
             {
-                var requestDto = new LoginInput
+                var input = new LoginUserInput
                 {
                     Email = request.Email,
                     Password = request.Password,
                 };
 
-                var response = await userService.LoginUserAsync(requestDto);
+                var output = await authService.LoginUserAsync(input);
 
-                if (!response.IsSuccess || response.Token == null)
+                if (output.ErrorMessage.HasValue)
                 {
-                    return Results.BadRequest(new ApiResponse<string>
-                    {
-                        IsSuccess = false,
-                        Message = ResponseMessage.BadRequest
-                    });
+                    var apiErrorResponseHelper = new ApiErrorResponseHelper();
+                    return apiErrorResponseHelper.SendMessage(output.ErrorMessage.Value);
                 }
 
-                return Results.Ok(new ApiResponse<LoginResponse>
+                return Results.Ok(new ApiSuccessResponse<string>
                 {
-                    IsSuccess = true,
-                    Message = ResponseMessage.Success,
-                    Data = new LoginResponse
-                    {
-                        Token = response.Token
-                    }
+                    Data = output.Data
                 });
             });
         }

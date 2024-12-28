@@ -25,6 +25,13 @@ namespace TaskManagement.Infrastructure.Repositories
             return true;
         }
 
+        public async Task<Guid?> DeleteUserTaskAsync(Guid id, Guid userId)
+        {
+            var rowUpdated = await _appDbContext.UserTasks.Where(t => t.Id == id && t.TaskOwnerId == userId).ExecuteDeleteAsync();
+            if (rowUpdated < 1) return null;
+            return id;
+        }
+
         public async Task<IList<UserTaskDto>> GetAllUserTaskAsync(Guid ownerId)
         {
             var tasks = await _appDbContext.UserTasks
