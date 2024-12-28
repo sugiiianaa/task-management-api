@@ -1,5 +1,6 @@
 ﻿using TaskManagement.Application.Interfaces;
 using TaskManagement.Application.Models;
+using TaskManagement.Application.Models.Enums;
 using TaskManagement.Application.Models.InputModel.UserTask;
 using TaskManagement.Domain.Dtos;
 using TaskManagement.Infrastructure.Interfaces;
@@ -47,6 +48,22 @@ namespace TaskManagement.Application.Services
         public async Task<ApplicationOutputGenericModel<Guid?>> UpdateTaskAsync(UpdateTaskInput input)
         {
             var existingTask = await _taskRepository.GetUserTaskByIdAsync(input.TaskId);
+
+            if (existingTask == null)
+            {
+                return new ApplicationOutputGenericModel<Guid?>
+                {
+                    ErrorMessage = ApplicationErrorMessage.NotFound
+                };
+            }
+
+            if (existingTask.TaskOwnerId != input.TaskOwnerId)
+            {
+                return new ApplicationOutputGenericModel<Guid?>
+                {
+                    ErrorMessage = ApplicationErrorMessage.NotFound
+                };
+            }
 
             var Dto = new UserTaskDto
             {

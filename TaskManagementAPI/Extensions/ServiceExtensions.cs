@@ -63,10 +63,8 @@ namespace TaskManagementAPI.Extensions
         public static void AddApplicationServices(this IServiceCollection services)
         {
             // Register application services
-            services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<ITaskService, TaskService>();
-            services.AddScoped<ITokenService, TokenService>();
-            services.AddScoped<IPasswordService, PasswordService>();
         }
 
         public static void AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)

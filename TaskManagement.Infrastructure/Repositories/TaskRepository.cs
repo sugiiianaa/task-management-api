@@ -10,19 +10,22 @@ namespace TaskManagement.Infrastructure.Repositories
     {
         private readonly AppDbContext _appDbContext = appDbContext;
 
-        public async Task<bool> CreateUserTaskAsync(UserTaskDto task)
+        public async Task<Guid> CreateUserTaskAsync(UserTaskDto task)
         {
             var userTask = new UserTask
             {
                 Title = task.Title,
                 Description = task.Description,
-                ExpectedFinishDate = task.ExpectedFinishDate ?? DateTime.UtcNow.AddDays(3),
+                ExpectedFinishDate = task.ExpectedFinishDate,
                 TaskOwnerId = task.OwnerId,
-                TaskStatus = task.TaskStatus ?? Domain.Enums.UserTaskStatus.Todo,
+                TaskStatus = task.TaskStatus,
             };
-            _appDbContext.UserTasks.Add(userTask);
+
+            var userTaskRecord = _appDbContext.UserTasks.Add(userTask);
+
             await _appDbContext.SaveChangesAsync();
-            return true;
+
+            return userTaskRecord.Entity.Id;
         }
 
         public async Task<Guid?> DeleteUserTaskAsync(Guid id, Guid userId)
@@ -58,29 +61,17 @@ namespace TaskManagement.Infrastructure.Repositories
 
         public async Task<Guid?> UpdateUserTaskAsync(UserTaskDto task)
         {
-            var userTask = await GetUserTaskByIdAsync(task.Id);
+            var taskRecord = await _appDbContext.UserTasks.SingleOrDefaultAsync(t => t.Id == task.Id);
 
-            if (userTask == null) return null;
-
-            // Modify the existing tracked entity directly
-            userTask.Title = task.Title ?? userTask.Title;
-            userTask.Description = task.Description ?? userTask.Description;
-            // Check if the task.ExpectedFinishDate is valid (not null and not the default value)
-            if (task.ExpectedFinishDate.HasValue && task.ExpectedFinishDate.Value != default)
-            {
-                userTask.ExpectedFinishDate = task.ExpectedFinishDate.Value;
-            }
-            else
-            {
-                // Keep the existing ExpectedFinishDate if the new value is invalid
-                userTask.ExpectedFinishDate = userTask.ExpectedFinishDate;
-            }
-            userTask.TaskStatus = task.TaskStatus ?? userTask.TaskStatus;
+            taskRecord.Title = task.Title;
+            taskRecord.Description = task.Description;
+            taskRecord.ExpectedFinishDate = task.ExpectedFinishDate;
+            taskRecord.TaskStatus = task.TaskStatus;
 
             // Save changes to the existing tracked entity
             await _appDbContext.SaveChangesAsync();
 
-            return userTask.Id;
+            return taskRecord.Id;
         }
     }
 }

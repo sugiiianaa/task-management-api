@@ -32,15 +32,16 @@ namespace TaskManagementAPI.Endpoints
                     return apiErrorResponseHelper.SendMessage(output.ErrorMessage.Value);
                 }
 
-                var dataResponse = new GetUserTaskData
+                var dataResponse = output.Data.Select(task => new GetUserTaskData
                 {
-                    Title = output.Data.Title,
-                    Description = output.Data.Description,
-                    ExpectedFinishDate = output.Data.ExpectedFinishDate,
-                    TaskStatus = TaskHelper.GetStatus(output.Data.TaskStatus),
-                };
+                    Id = task.Id,
+                    Title = task.Title,
+                    Description = task.Description,
+                    TaskStatus = TaskHelper.GetStatus(task.TaskStatus),
+                    ExpectedFinishDate = task.ExpectedFinishDate
+                }).ToList();
 
-                return Results.Ok(new ApiSuccessResponse<GetUserTaskData>
+                return Results.Ok(new ApiSuccessResponse<List<GetUserTaskData>>
                 {
                     Data = dataResponse
                 });
