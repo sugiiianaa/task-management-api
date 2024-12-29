@@ -62,7 +62,7 @@ I also use Entity Framework and PostgreSQL for this project.
 
 ## Message for the readers
 
-If you look through my code and think something should be fixed you could open an `issue` or `pull request` *OR* you could email me through : 
+If you look through my code and think something should be fixed or could be improved you could open an `issue` or `pull request` *OR* you could email me through : 
 sugiiianaa@gmail.com. 
 
 Any suggestion and recommondation for improving the project would be really apreciated!
